@@ -1,0 +1,416 @@
+/******************************************************************************
+* Copyright (c) 2005, 2015  Ericsson AB
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Eclipse Public License v1.0
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v10.html
+*
+* Contributors:
+* Csaba Koppany
+* Eduard Czimbalmos
+* Gabor Szalai
+* Janos Zoltan Szabo
+* Timea Moder
+******************************************************************************/
+//  File:               H248_SDP_Types.ttcn
+//  Rev:                R6A
+//  Prodnr:             CNL 113 424
+//  Reference:          ITU-T SDP
+
+module H248_SDP_Types
+{
+external function f_H248_SDP_Enc(in H248_SDP_Message_list pl_msg)
+  return charstring;
+external function f_H248_SDP_Dec(in charstring pl_stream)
+  return H248_SDP_Message_list;
+external function f_H248_SDP_Dec_backtrack(in charstring pl_stream, out H248_SDP_Message_list pl_message)
+  return integer with { extension "prototype(backtrack)" }
+
+  group Types
+  {
+    group MessageTypes
+    {
+    type record of H248_SDP_Message H248_SDP_Message_list
+      with { variant "BEGIN('','([ \t\n])#(,)')"; 
+             variant "SEPARATOR('\r\n','([ \t\n])#(,)((\r\n)|[\n])v')";
+             variant "END('\r\n','(\r\n)|[\n]')" };
+
+      type record H248_SDP_Message{
+        charstring          protocol_version optional,
+        H248_SDP_Origin          origin optional,
+        charstring          session_name optional,
+        charstring          information optional,
+        charstring          uri optional,
+        H248_SDP_email_list      emails optional,
+        H248_SDP_phone_list      phone_numbers optional,
+        H248_SDP_connection      connection optional,
+        H248_SDP_bandwidth_list  bandwidth optional,
+        H248_SDP_time_list       times optional,
+        H248_SDP_timezone_list   timezone_adjustments optional,
+        H248_SDP_key             key optional,
+        H248_SDP_attribute_list  attributes optional,
+        H248_SDP_media_desc_list media_list optional
+      } with { variant "TEXT_CODING()";
+               variant (protocol_version) "BEGIN('v=','((v=)|=)')";
+               variant (session_name) "BEGIN('s=')";
+               variant (information) "BEGIN('i=')";
+               variant (uri) "BEGIN('u=')";
+               variant "SEPARATOR('\r\n','(\r\n)|[\n]')"}
+    } // group MessageTypes
+
+
+
+    group SubTypes
+    {
+        group AttributeTypes
+        {
+            type record H248_SDP_attribute_cat {
+                charstring attr_value
+            } with { variant "BEGIN('cat:')"}
+            
+            type record H248_SDP_attribute_keywds {
+                charstring attr_value
+            } with { variant "BEGIN('keywds:')"}
+            
+            type record H248_SDP_attribute_tool {
+                charstring attr_value
+            } with { variant "BEGIN('tool:')"}
+            
+            type record H248_SDP_attribute_ptime {
+                charstring attr_value
+            } with { variant "BEGIN('ptime:')"}
+            
+            type record H248_SDP_attribute_recvonly {
+            } with { variant "BEGIN('recvonly')"}
+            
+            type record H248_SDP_attribute_sendrecv {
+            } with { variant "BEGIN('sendrecv')"}
+            
+            type record H248_SDP_attribute_sendonly {
+            } with { variant "BEGIN('sendonly')"}
+            
+            type record H248_SDP_attribute_orient {
+                charstring attr_value
+            } with { variant "BEGIN('orient:')"}
+        
+            type record H248_SDP_attribute_type {
+                charstring attr_value
+            } with { variant "BEGIN('type:')"}
+            
+            type record H248_SDP_attribute_charset {
+                charstring attr_value
+            } with { variant "BEGIN('charset:')"}
+            
+            type record H248_SDP_attribute_sdplang {
+                charstring attr_value
+            } with { variant "BEGIN('sdplang:')"}
+            
+            type record H248_SDP_attribute_lang {
+                charstring attr_value
+            } with { variant "BEGIN('lang:')"}
+            
+            type record H248_SDP_attribute_framerate {
+                charstring attr_value
+            } with { variant "BEGIN('framerate:')"}
+            
+            type record H248_SDP_attribute_quality {
+                charstring attr_value
+            } with { variant "BEGIN('quality:')"}
+            
+            type record H248_SDP_attribute_fmtp {
+                charstring attr_value
+            } with { variant "BEGIN('fmtp:')"}
+            
+            type record H248_SDP_attribute_curr {
+                charstring attr_value
+            } with { variant "BEGIN('curr:')"}
+            
+            type record H248_SDP_attribute_des {
+                charstring attr_value
+            } with { variant "BEGIN('des:')"}
+            
+            type record H248_SDP_attribute_conf {
+                charstring attr_value
+            } with { variant "BEGIN('conf:')"}
+            
+            type record H248_SDP_attribute_rtpmap {
+                charstring attr_value
+            } with { variant "BEGIN('rtpmap:')"}
+            
+            type record H248_SDP_attribute_rtcp {
+                charstring attr_value
+            } with { variant "BEGIN('rtcp:')"}
+            
+            type record H248_SDP_attribute_max_size{
+                charstring max_size
+            } with { variant "BEGIN('max-size:')"}
+            
+            type record of charstring H248_SDP_url_list
+              with { variant "SEPARATOR(' ')"}
+
+            type record H248_SDP_attribute_path {
+                H248_SDP_url_list path_list
+            } with { variant "BEGIN('path:')"}
+            
+            type record of charstring H248_SDP_media_type_list
+              with { variant "SEPARATOR(' ')"}
+
+            type record H248_SDP_attribute_accept_types {
+                H248_SDP_media_type_list attr_value
+            } with { variant "BEGIN('accept-types:')"}
+
+            type record H248_SDP_attribute_accept_wd_types {
+                H248_SDP_media_type_list attr_value
+            } with { variant "BEGIN('accept-wrapped-types:')"}
+
+            type record H248_SDP_attribute_maxprate{
+                charstring prate_integer_part,
+                charstring prate_fraction_part optional
+            } with { variant "BEGIN('maxprate:')";
+                     variant "SEPARATOR('.')";}
+
+            type record H248_SDP_attribute_mid {
+                charstring id_tag
+            } with { variant "BEGIN('mid:')"}
+
+            type record of charstring H248_SDP_id_tag_list
+              with { variant "SEPARATOR(' ')"}
+
+            type record H248_SDP_attribute_group {
+                charstring semantics,
+                H248_SDP_id_tag_list id_tag optional
+            } with { variant "BEGIN('group:')";
+                     variant "SEPARATOR(' ')";}
+
+            type record H248_SDP_attribute_unknown {
+                charstring name,
+                charstring attr_value optional
+            } with { variant "SEPARATOR(':')";
+                     variant (attr_value) "TEXT_CODING(,,'[^\n]#(,)')"}
+            
+            type record H248_SDP_attribute_file_selector {
+                charstring attr_value
+            } with { variant "BEGIN('file-selector:')"}
+
+			type record H248_SDP_attribute_file_transfer_id {
+                 charstring attr_value
+            } with { variant "BEGIN('file-transfer-id:')"}
+
+			type record H248_SDP_attribute_inactive {
+                          } with { variant "BEGIN('inactive')"}
+                          
+            type record H248_SDP_attribute_setup {
+                charstring attr_value
+            } with { variant "BEGIN('setup:')"}
+
+            type record H248_SDP_attribute_connection {
+                charstring attr_value
+            } with { variant "BEGIN('connection:')"}
+
+            type record H248_SDP_attribute_crypto {
+                charstring attr_value
+            } with { variant "BEGIN('crypto:')"}
+
+      type record H248_SDP_attribute_content {
+        charstring attr_value
+      } with { variant "BEGIN('content:')"}
+
+      type record H248_SDP_attribute_label {
+        charstring attr_value
+      } with { variant "BEGIN('label:')"}
+
+      type record H248_SDP_attribute_floorctrl {
+        charstring attr_value
+      } with { variant "BEGIN('floorctrl:')"}
+
+      type record H248_SDP_attribute_confid {
+        charstring attr_value
+      } with { variant "BEGIN('confid:')"}
+
+      type record H248_SDP_attribute_userid {
+        charstring attr_value
+      } with { variant "BEGIN('userid:')"}
+
+      type record H248_SDP_attribute_floorid {
+        charstring attr_value
+      } with { variant "BEGIN('floorid:')"}
+
+      type record H248_SDP_attribute_fingerprint {
+        charstring attr_value
+      } with { variant "BEGIN('fingerprint:')"}
+      
+            
+            type union H248_SDP_attribute {
+                H248_SDP_attribute_cat             	cat,
+                H248_SDP_attribute_keywds          	keywds,
+                H248_SDP_attribute_tool            	tool,
+                H248_SDP_attribute_ptime           	ptime,
+                H248_SDP_attribute_recvonly        	recvonly,
+                H248_SDP_attribute_sendrecv        	sendrecv,
+                H248_SDP_attribute_sendonly        	sendonly,
+                H248_SDP_attribute_orient          	orient,
+                H248_SDP_attribute_type            	sdp_type,
+                H248_SDP_attribute_charset         	charset,
+                H248_SDP_attribute_sdplang         	sdplang,
+                H248_SDP_attribute_lang            	lang,
+                H248_SDP_attribute_framerate       	framerate,
+                H248_SDP_attribute_quality         	quality,
+                H248_SDP_attribute_fmtp            	fmtp,
+                H248_SDP_attribute_curr            	curr,
+                H248_SDP_attribute_des             	des,
+                H248_SDP_attribute_conf            	conf,
+                H248_SDP_attribute_rtpmap          	rtpmap,
+                H248_SDP_attribute_rtcp            	rtcp,
+                H248_SDP_attribute_max_size        	max_size,
+                H248_SDP_attribute_path            	path,
+                H248_SDP_attribute_accept_types    	accept_types,
+                H248_SDP_attribute_accept_wd_types 	accept_wrapped_types,
+                H248_SDP_attribute_maxprate        	maxprate,
+                H248_SDP_attribute_mid             	mid,
+                H248_SDP_attribute_group           	group_attr,
+                H248_SDP_attribute_file_selector   	file_selector,
+                H248_SDP_attribute_file_transfer_id 	file_transfer_id,
+                H248_SDP_attribute_inactive          inactive,
+                H248_SDP_attribute_setup             setup,
+                H248_SDP_attribute_connection        connection,
+                H248_SDP_attribute_crypto            crypto,
+                H248_SDP_attribute_content        content,
+                H248_SDP_attribute_label          attr_label,
+                H248_SDP_attribute_floorctrl      floorctrl,
+                H248_SDP_attribute_confid         confid,
+                H248_SDP_attribute_userid         userid,
+                H248_SDP_attribute_floorid        floorid,
+                H248_SDP_attribute_fingerprint    fingerprint,
+                
+                // unknown has to be the last else encoding/decoding won't work!
+                H248_SDP_attribute_unknown unknown
+            } with {variant "BEGIN('a=')"}
+        } // group AttributeTypes
+            
+      type set of H248_SDP_attribute H248_SDP_attribute_list with
+    {variant "SEPARATOR('\r\n','(\r\n)|[\n]')"};
+
+      type set of H248_SDP_bandwidth H248_SDP_bandwidth_list with
+    {variant "SEPARATOR('\r\n','(\r\n)|[\n]')"};
+
+      type record H248_SDP_bandwidth {
+        charstring          modifier,
+        charstring          bandwidth
+      } with { variant "BEGIN('b='), SEPARATOR(':')";
+             variant (bandwidth) "TEXT_CODING(,,'[^\n]#(,)')"}
+      
+      type record H248_SDP_connection{
+        charstring          net_type,
+        charstring          addr_type,
+		H248_SDP_conn_addr		conn_addr
+      } with { variant "BEGIN('c='), SEPARATOR(' ')";}
+
+      type record H248_SDP_conn_addr {
+	  	charstring addr,
+		  charstring ttl optional,
+		  charstring num_of_addr optional
+	  } with { variant "SEPARATOR('/')"}
+
+      type set of H248_SDP_connection H248_SDP_connection_list with 
+    {variant "SEPARATOR('\r\n','(\r\n)|[\n]')";};
+
+      type record H248_SDP_contact {
+        charstring          addr_or_phone,
+        charstring          disp_name optional
+      } with {variant (addr_or_phone) "TEXT_CODING(,,'[^\n]#(,)')";
+              variant "SEPARATOR(' ')";
+              variant (disp_name) "BEGIN('('), END(')')"}
+
+      type H248_SDP_contact H248_SDP_contact_tel with {variant "BEGIN('p=')"}
+
+      type H248_SDP_contact H248_SDP_contact_email with {variant "BEGIN('e=')"}
+      
+      type set of H248_SDP_contact_email H248_SDP_email_list with 
+    { variant "SEPARATOR('\r\n','(\r\n)|[\n]')";};
+
+      type record of charstring H248_SDP_fmt_list with { variant "SEPARATOR(' ')"};
+
+      type record H248_SDP_key {
+        charstring          method,
+        charstring          key optional
+      } with { variant "BEGIN('k='), SEPARATOR(':')";
+               variant (key) "TEXT_CODING(,,'[^\n]#(,)')"}
+
+      type record H248_SDP_media_desc {
+        H248_SDP_media_field     media_field,
+        charstring          information optional,
+        H248_SDP_connection_list connections optional,
+        H248_SDP_bandwidth_list  bandwidth optional,
+        H248_SDP_key             key optional,
+        H248_SDP_attribute_list  attributes optional
+      } with { variant (information) "BEGIN('i=')";
+               variant "SEPARATOR('\r\n','(\r\n)|[\n]')";}
+
+      type set of H248_SDP_media_desc H248_SDP_media_desc_list;
+
+      type record H248_SDP_media_port {
+        charstring             port_number,
+        charstring             num_of_ports optional
+      } with {variant "SEPARATOR('/')"}
+
+      type record H248_SDP_media_field{
+        charstring          media,
+        H248_SDP_media_port      ports,
+        charstring          transport,
+        H248_SDP_fmt_list        fmts
+      } with { variant "BEGIN('m='), SEPARATOR(' ')"}
+
+      type record H248_SDP_time{
+        H248_SDP_time_field      time_field,
+        H248_SDP_repeat_list     time_repeat optional		
+      }
+
+      type record H248_SDP_time_field{
+      // due to the limitation of integer value a charstring shall be used
+      // to represent 32 bit long unsigned int
+        charstring   start_time,
+        charstring   stop_time
+      } with { variant "BEGIN('t='), SEPARATOR(' ')";}
+
+      type record H248_SDP_repeat{
+        H248_SDP_typed_time      repeat_interval,
+        H248_SDP_typed_time      active,
+        H248_SDP_typed_time_list offsets
+      } with { variant "BEGIN('r='), SEPARATOR(' ')";}
+
+      type set of H248_SDP_repeat H248_SDP_repeat_list with { variant "SEPARATOR(' ')"};
+
+      type record H248_SDP_typed_time{
+        charstring     time,
+        charstring     unit optional
+      } with { variant (time) "TEXT_CODING(,,'[\-]#(,1)[\d]#(1,)')"}
+      
+      type set of H248_SDP_typed_time H248_SDP_typed_time_list;
+
+      type set of H248_SDP_time H248_SDP_time_list;
+
+      type record H248_SDP_timezone{
+        charstring          adjustment_time,
+        H248_SDP_typed_time      offset
+      } with { variant "SEPARATOR(' ')"}
+
+      type set of H248_SDP_timezone H248_SDP_timezone_list 
+        with { variant "BEGIN('z='), SEPARATOR(' ')";};
+
+      type record H248_SDP_Origin{
+        charstring          user_name,
+// the following 2 fields are numeric strings that may not fit into 32-bit signed int
+        charstring          session_id,
+        charstring          session_version,
+        charstring          net_type,
+        charstring          addr_type,
+        charstring          addr
+      } with { variant "BEGIN('o='), SEPARATOR(' ')";}
+      type set of H248_SDP_contact_tel H248_SDP_phone_list with 
+    {variant "SEPARATOR('\r\n','(\r\n)|[\n]')";};
+    } // group SubTypes
+    
+  } // group Types
+
+} with {encode "TEXT"}
+

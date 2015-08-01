@@ -1,0 +1,969 @@
+/******************************************************************************
+* Copyright (c) 2005, 2015  Ericsson AB
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Eclipse Public License v1.0
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v10.html
+*
+* Contributors:
+* Csaba Koppany
+* Eduard Czimbalmos
+* Gabor Szalai
+* Janos Zoltan Szabo
+* Timea Moder
+******************************************************************************/
+//
+//  File:               H248_Types.ttcn
+//  Rev:                R6A
+//  Prodnr:             CNL 113 424
+//  Reference:          ITU-T H.248.1 V2 (05/2002),
+//                      ITU-T H.248.1 V2 Corrigendum 1 (03/2004)
+//                      ITU-T H.248.1 V3 Draft (09/2004)
+//                      updates from ITU-T H.248.1 V3 Draft (08/2005)
+//                              except TermIDList
+
+module  H248_Types
+{
+
+modulepar {
+  boolean par_H248_EncDec_debug:=false
+  H248_header_format_enum par_H248_Enc_header_format:=H248_LONG_TOKENS
+};
+
+external function f_H248_Enc(in PDU_H248 pl_msg) return charstring;
+external function f_H248_Dec(in charstring pl_stream) return PDU_H248;
+
+type enumerated H248_header_format_enum {H248_SHORT_TOKENS,H248_LONG_TOKENS,
+                                         H248_RANDOM_TOKENS}
+
+type record PDU_H248 {
+  AuthenticationHeader authHeader  optional,
+  Message mess
+};
+
+type record Message {
+  integer version (0..99),
+  MId mId,
+  MessageBody messageBody
+};
+
+/// *****************************************************
+/// Definitions for tha Authentication header
+type record AuthenticationHeader {
+  SecurityParmIndex secParmIndex,
+  SequenceNum seqNum,
+  AuthData ad
+};
+
+type octetstring SecurityParmIndex  length(4) ;
+
+type octetstring SequenceNum  length(4);
+
+type octetstring AuthData  length(12..32);
+/// END Definitions for tha Authentication header
+/// *****************************************************
+
+/// *****************************************************
+/// Definitions for tha MId
+type union MId {
+  IP4Address ip4Address,
+  IP6Address ip6Address,
+  DomainName domainName,
+  MtpAddress mtpAddress,
+  PathName deviceName
+};
+
+type octetstring MtpAddress length(2..4);
+
+type record DomainName {
+  charstring name,
+  integer portNumber (0..65535)   optional
+};
+
+type record IP4Address {
+  charstring field_address  length(7..15),
+  integer portNumber (0..65535)   optional
+};
+
+type record IP6Address {
+  charstring field_address  length(16),
+  integer portNumber (0..65535)   optional
+};
+
+type charstring PathName  length(1..64);
+
+/// END Definitions for tha Mid
+/// *****************************************************
+
+type union MessageBody {
+  ErrorDescriptor messageError,
+  TransactionList transactions
+};
+
+type record of Transaction TransactionList;
+
+type union Transaction {
+  TransactionRequest transactionRequest,
+  TransactionPending transactionPending,
+  TransactionReply transactionReply,
+  TransactionResponseAck transactionResponseAck,
+  SegmentReply segmentReply
+};
+
+type charstring TransactionId  length(1..10);
+
+type charstring ContextID  length(1..10);
+
+type charstring TerminationID;
+
+type record of TerminationID TerminationIDList;
+
+type integer StreamID (0..65535);
+
+type charstring RequestID  length(1..10);
+
+type charstring Name;
+
+type charstring Value;
+
+type record PkgdName {
+  charstring name,
+  charstring itemId
+};
+
+type union ParmValue {
+  Value  notequal,
+  Value  greaterthan,
+  Value  lessthan,
+  Range range,
+  ValueList sublist,
+  ValueList alternatives,
+  Value  equal
+};
+
+type record of Value ValueList;
+
+type record Range {
+  Value lower,
+  Value upper
+};
+
+type record TimeNotation {
+  charstring date  length(8), // yyyymmdd format
+  charstring time  length(8)  // hhmmssss format
+  // per ISO 8601:1988
+};
+
+/// *****************************************************
+/// ***** Request related
+/// *****************************************************
+type record TransactionRequest {
+  TransactionId transactionId,
+  ActionRequestList actions
+};
+
+type record of ActionRequest ActionRequestList;
+
+type record ActionRequest {
+  ContextID contextId,
+  ContextBody contextBody
+};
+
+type record ContextBody
+{
+  ContextRequest contextRequest  optional,
+  ContextAttrAuditRequest contextAttrAuditReq  optional,
+  CommandRequestList commandRequests optional
+};
+
+type set ContextRequest {
+  integer priority (0..15) optional,
+  Emergency emergency optional,
+  TopologyRequestList topologyReq optional,
+  boolean iepsValue optional,
+  ContextAttrDescriptor contextAttrDescriptor optional
+};
+
+type union ContextAttrDescriptor  //new in V3
+{
+  ContextIdList contextIds,
+  PropertyParmList propertyParms
+};
+
+
+type record of ContextID ContextIdList;  //new in V3
+
+
+
+type enumerated Emergency {
+  emergencyOff,
+  emergency
+};
+
+type record of TopologyRequest TopologyRequestList;
+
+type record TopologyRequest {
+  TerminationID terminationFrom,
+  TerminationID terminationTo,
+  TopologyDirection topologyDirection,
+  StreamID streamID  optional 
+};
+
+type enumerated TopologyDirection {
+  bothway (0),
+  isolate (1),
+  onewayExternal (3),
+  onewayBoth (4),
+  oneway (2)
+};
+
+type set ContextAttrAuditRequest
+{
+  integer priorityValue (0..15) optional,
+  Emergency emergencyValue optional,
+  boolean iepsValue optional,
+  ContextAttrDescriptor contextAttrDescriptor optional,
+  AuditSelectionLogic auditSelectionLogic optional,
+  H248_token topology optional,
+  H248_token emergency optional,
+  H248_token priority optional,
+  H248_token iEPS optional,
+  PkgdName pkgdName optional
+}
+
+type  enumerated AuditSelectionLogic { ANDLgc(0), ORLgc(1)};
+
+type record of CommandRequest CommandRequestList;
+
+type record CommandRequest {
+  boolean optionalField,
+  boolean wildcardReturn,
+  Command command
+};
+
+type union Command {
+  AmmRequest addReq,
+  AmmRequest moveReq,
+  AmmRequest modReq,
+  /* Add, Move, Modify requests have the same parameters */ 
+  SubtractRequest subtractReq,
+  AuditRequest auditCapRequest,
+  AuditRequest auditValueRequest,
+  NotifyRequest notifyReq,
+  ServiceChangeRequest serviceChangeReq
+};
+
+type record AmmRequest {
+  TerminationID terminationID,
+  AmmDescriptorList descriptors optional
+};
+
+type set of AmmDescriptor AmmDescriptorList;
+
+type union AmmDescriptor {
+  ModemDescriptor modemDescriptor,
+  MuxDescriptor muxDescriptor,
+  MediaDescriptor mediaDescriptor,
+  EventBufferDescriptor eventBufferDescriptor,
+  EventsDescriptor eventsDescriptor,
+  SignalsDescriptor signalsDescriptor,
+  DigitMapDescriptor digitMapDescriptor,
+  AuditDescriptor auditDescriptor,
+  StatisticsDescriptor statisticsDescriptor
+};
+
+type record SubtractRequest {
+  TerminationID terminationID,
+  AuditDescriptor auditDescriptor  optional 
+};
+
+type record AuditRequest {
+  TerminationID terminationID,
+  AuditDescriptor auditDescriptor
+};
+
+type record NotifyRequest {
+  TerminationID terminationID,
+  NotifyBody notifyBody 
+};
+
+type record NotifyBody {
+  ObservedEventsDescriptor observedEventsDescriptor,
+  ErrorDescriptor errorDescriptor  optional 
+};
+
+type record ServiceChangeRequest {
+  TerminationID terminationID,
+  ServiceChangeDescriptor serviceChangeParms
+};
+
+/// *****************************************************
+/// ***** Reply related
+/// *****************************************************
+type record TransactionReply {
+  TransactionId transactionId,
+  integer segmentNumber optional,
+  H248_token segmentationComplete optional,
+  H248_token immAckRequired  optional,
+  TransactionReplyOrError transactionResult
+};
+
+type union TransactionReplyOrError {
+  ErrorDescriptor transactionError,
+  ActionReplyList actionReplies  
+};
+
+type record of ActionReply ActionReplyList;
+
+type record ActionReply {
+  ContextID contextId,
+  ContextReplyBody contextBody optional
+};
+
+type record ContextReplyBody
+{
+  ContextRequest contextRequest  optional,
+  CommandReplyList commandReply optional,
+  ErrorDescriptor errorDescriptor  optional
+};
+
+type record of CommandReply CommandReplyList;
+
+type union CommandReply {
+  AmmsReply addReply,
+  AmmsReply moveReply,
+  AmmsReply modReply,
+  AmmsReply subtractReply,
+  /* Add, Move, Modify, Subtract replies have the same parameters */ 
+  AuditReply auditCapReply,
+  AuditReply auditValueReply,
+  NotifyReply notifyReply,
+  ServiceChangeReply serviceChangeReply
+};
+
+type record AmmsReply {
+  TerminationID terminationID,
+  TerminationAudit terminationAudit  optional 
+};
+
+type record of AuditReturnParameter TerminationAudit;
+
+type union AuditReturnParameter {
+  ErrorDescriptor errorDescriptor,
+  MediaDescriptor mediaDescriptor,
+  ModemDescriptor modemDescriptor,
+  MuxDescriptor muxDescriptor,
+  EventBufferDescriptor eventBufferDescriptor,
+  EventsDescriptor eventsDescriptor,
+  SignalsDescriptor signalsDescriptor,
+  DigitMapDescriptor digitMapDescriptor,
+  ObservedEventsDescriptor observedEventsDescriptor,
+  StatisticsDescriptor statisticsDescriptor,
+  PackagesDescriptor packagesDescriptor,
+  AuditTokens emptyDescriptors
+};
+
+type union AuditReply {
+  ErrorDescriptor field_error,
+  TerminationIDList contextAuditResult,
+  AuditResult auditResult
+};
+
+type record AuditResult {
+  TerminationID terminationID,
+  TerminationAudit terminationAuditResult optional
+};
+
+type record NotifyReply {
+  TerminationID terminationID,
+  ErrorDescriptor errorDescriptor  optional 
+};
+
+type record ServiceChangeReply {
+  TerminationID terminationID,
+  ServiceChangeResult serviceChangeResult optional
+};
+
+type union ServiceChangeResult {
+  ErrorDescriptor errorDescriptor,
+  ServiceChangeResParm serviceChangeResParms
+};
+
+type set ServiceChangeResParm {
+  ServiceChangeAddress serviceChangeAddress  optional,
+  integer serviceChangeVersion (0..99)   optional,
+  ServiceChangeProfile serviceChangeProfile  optional,
+  MId serviceChangeMgcId  optional,
+  TimeNotation timestamp  optional 
+};
+
+/// *****************************************************
+/// ***** Transaction Ack
+/// *****************************************************
+type record of TransactionAck TransactionResponseAck;
+
+type record TransactionAck {
+  TransactionId firstAck,
+  TransactionId lastAck  optional 
+};
+
+/// *****************************************************
+/// ***** Transaction Pending
+/// *****************************************************
+type record TransactionPending {
+  TransactionId transactionId
+};
+
+/// *****************************************************
+/// ***** SegmentReply
+/// *****************************************************
+type record SegmentReply {
+  TransactionId transactionId,
+  integer segmentNumber (0..65535),
+  H248_token segmentationComplete optional
+  
+};
+
+/// *****************************************************
+/// *****************************************************
+/// *****************************************************
+/// Descriptors
+/// *****************************************************
+
+/// *****************************************************
+/// ***** AuditDescriptor
+/// *****************************************************
+type set of AuditItem AuditDescriptor;
+
+type union AuditItem {
+/// IndAuditParameters added in v2
+    IndAudMediaDescriptor indaudmediaDescriptor,
+    IndAudEventBufferDescriptor indaudeventBufferDescriptor,
+    IndAudEventsDescriptor indaudeventsDescriptor,
+    IndAudSignalsDescriptor indaudsignalsDescriptor,
+    IndAudDigitMapDescriptor indauddigitMapDescriptor,
+    IndAudStatisticsDescriptor indaudstatisticsDescriptor,
+    IndAudPackagesDescriptor indaudpackagesDescriptor,
+/// AuditTokens exists in V1
+    AuditTokens            auditToken
+};
+
+type enumerated AuditTokens { muxToken, modemToken, mediaToken,
+  signalsToken, digitMapToken, statsToken, observedEventsToken, packagesToken,
+  eventBufferToken, eventsToken
+};
+
+type set IndAudMediaDescriptor {
+  IndAudTerminationStateDescriptor termStateDescr optional,
+  Stream streams  optional 
+};
+
+type record of IndAudTerminationStateParm IndAudTerminationStateDescriptor;
+
+type union IndAudTerminationStateParm {
+  IndAudServiceStates serviceStates,
+  H248_token  buffer,
+  PropertyParm propertyParm,
+  PkgdName pkgdName
+};
+
+type union IndAudServiceStates {
+  ServiceState  notequal,
+  ServiceState  greaterthan,
+  ServiceState  lessthan,
+  ServiceState  equal,
+  H248_token    tokenOnly
+};
+
+type union Stream {
+  IndAudStreamDescriptorList multiStream,
+  IndAudStreamParms oneStream 
+};
+
+type record of IndAudStreamDescriptor IndAudStreamDescriptorList;
+
+type record IndAudStreamDescriptor {
+  StreamID streamID,
+  IndAudStreamParms streamParms
+};
+
+type set IndAudStreamParms {
+  IndAudLocalControlDescriptor localControlDescriptor optional,
+  IndAudStatisticsDescriptor   statisticsDescriptor   optional,
+  LocalRemoteDescriptor        localDescriptor   optional,
+  LocalRemoteDescriptor        remoteDescriptor  optional
+};
+
+
+type record of IndAudLocalParm IndAudLocalControlDescriptor;
+
+type union IndAudLocalParm {
+  IndAudStreamMode streamModes,
+  H248_token  reservedValue,
+  H248_token  reservedGroup,
+  PropertyParm propertyParm,
+  PkgdName pkgdName
+};
+
+type union IndAudStreamMode {
+  StreamMode  notequal,
+  StreamMode  greaterthan,
+  StreamMode  lessthan,
+  StreamMode  equal,
+  H248_token  tokenOnly
+};
+
+type record IndAudEventsDescriptor {
+  RequestID requestID optional,
+  PkgdName pkgdName
+};
+
+type record IndAudEventBufferDescriptor {
+  PkgdName eventName,
+  EventParNameOrStream streamID  optional 
+};
+
+  type union EventParNameOrStream
+{
+  StreamID streamID,
+  Name eventParName
+};
+
+type record IndAudSignalsDescriptor {
+  IndAudSignalParm indAudSignalparm optional
+};
+
+type union IndAudSignalParm {
+  IndAudSignalRequest signal,
+  IndAudSignalList signalList
+};
+
+type record IndAudSignalList {
+  integer id (0..65535),
+  IndAudSignalRequest params optional
+};
+
+type record IndAudSignalRequest {
+  PkgdName signalName,
+  IndAudSignalRequestParmList params optional
+};
+
+type record of IndAudSignalRequestParm IndAudSignalRequestParmList;
+
+type union IndAudSignalRequestParm {
+  StreamID streamID,
+  RequestID sigRequestId  
+};
+
+type record IndAudDigitMapDescriptor {
+  DigitMapName digitMapName 
+};
+
+type record IndAudStatisticsDescriptor {
+  PkgdName statName
+};
+
+type PackagesItem IndAudPackagesDescriptor;
+
+/// *****************************************************
+/// ***** DigitMapDescriptor
+/// *****************************************************
+type record DigitMapDescriptor {
+  DigitMapName digitMapName  optional,
+  DigitMapValue digitMapValue  optional 
+};
+
+type Name DigitMapName;
+
+type record DigitMapValue {
+  integer startTimer (0..99)   optional,
+  integer shortTimer (0..99)   optional,
+  integer longTimer (0..99)   optional,
+  integer durationTimer (0..99)   optional,
+  DigitstringSingleOrList digitMapBody 
+};
+
+type union DigitstringSingleOrList
+{
+  DigitStringList list,
+  DigitString single
+};
+
+type record of DigitString DigitStringList;
+
+type charstring DigitString ;
+
+/// *****************************************************
+/// ***** ErrorDescriptor
+/// *****************************************************
+type record ErrorDescriptor {
+  ErrorCode errorCode,
+  ErrorText errorText  optional 
+};
+
+type integer ErrorCode (0..65535);
+
+type charstring ErrorText;
+
+/// *****************************************************
+/// ***** EventsDescriptor
+/// *****************************************************
+type record EventsDescriptor {
+  EventList events optional
+};
+
+type record EventList
+{
+  RequestID requestID,
+  RequestedEventList eventList
+};
+
+type record of RequestedEvent RequestedEventList;
+
+type record RequestedEvent {
+  PkgdName pkgdName,
+  FirstEventParameters eventParameters optional
+};
+
+type set FirstEventParameters
+{
+  EmbedSig embed optional,
+  EventDM eventDM optional,
+  StreamID streamID optional,
+  EventParameterList eventOther optional,
+  H248_token keepActive optional,
+  NotifyBehaviour notifyBehaviour optional,
+  H248_token resetEventsDescriptor optional
+};
+
+type record EmbedSig
+{
+  SignalsDescriptor signal optional,
+  EmbedFirst event optional
+};
+
+type union EventDM {
+  DigitMapName digitMapName,
+  DigitMapValue digitMapValue
+};
+
+type set of EventParameter EventParameterList;
+
+type record EventParameter {
+  Name eventParameterName,
+  ParmValue valueField 
+};
+
+type union NotifyBehaviour {
+  H248_token notifyImmediate,
+  NotifyRegulated notifyRegulated,
+  H248_token neverNotify
+};
+
+type record NotifyRegulated {
+  EmbedSig embed optional
+};
+
+type record EmbedFirst {
+  SecondEventList events optional
+};
+
+type record SecondEventList
+{
+  RequestID requestID,
+  SecondRequestedEventList eventList
+};
+
+type record of SecondRequestedEvent SecondRequestedEventList;
+
+type record SecondRequestedEvent {
+  PkgdName pkgdName,
+  SecondEventParameters eventParameters optional
+};
+
+type set SecondEventParameters
+{
+  SignalsDescriptor embed optional,
+  EventDM eventDM optional,
+  StreamID streamID optional,
+  EventParameterList eventOther optional,
+  H248_token keepActive optional,
+  NotifyBehaviour notifyBehaviour optional,
+  H248_token resetEventsDescriptor optional
+};
+
+/// *****************************************************
+/// ***** EventBufferDescriptor
+/// *****************************************************
+type record EventBufferDescriptor {
+  EventSpecList eventSpecs optional
+};
+
+type set of EventSpec EventSpecList;
+
+type record EventSpec {
+  PkgdName eventName,
+  EventParOrStreamList eventParList optional
+};
+
+/// *****************************************************
+/// ***** LocalControlDescriptor
+/// *****************************************************
+type record of LocalParm LocalControlDescriptor;
+
+type union LocalParm {
+  StreamMode streamMode,
+  boolean reserveValue,
+  boolean reserveGroup,
+  PropertyParm propertyParm
+};
+
+type enumerated StreamMode { sendOnly (0), recvOnly (1), sendRecv (2),
+  inactive (3), loopBack (4) };
+
+type record PropertyParm {
+  PkgdName name,
+  ParmValue valueField
+};
+
+/// *****************************************************
+/// ***** LocalRemoteDescriptor
+/// *****************************************************
+type charstring LocalRemoteDescriptor;
+
+/// *****************************************************
+/// ***** MediaDescriptor
+/// *****************************************************
+type set MediaDescriptor
+{
+  TerminationStateDescriptor termStateDescr optional,
+  MediaDescriptorStreams streams optional
+} ;
+
+type union MediaDescriptorStreams {
+  StreamDescriptorList multiStream,
+  StreamParm oneStream
+};
+
+type record of StreamDescriptor StreamDescriptorList;
+
+/// *****************************************************
+/// ***** ModemDescriptor
+/// *****************************************************
+type record ModemDescriptor {
+  Modems mtl,
+  PropertyParmList mpl  optional 
+};
+
+type union Modems {
+  ModemType single,
+  ModemTypeList list
+};
+
+type record of ModemType ModemTypeList;
+
+type record of PropertyParm PropertyParmList;
+
+type enumerated ModemType { 
+  v18 (0), v22bis (2), v22 (1), v32bis (4), v32 (3),
+  v34 (5), v90 (6), v91 (7), synchISDN (8), extMT
+};
+
+/// *****************************************************
+/// ***** MuxDescriptor
+/// *****************************************************
+type record MuxDescriptor {
+  MuxType muxType,
+  TerminationIDList termList
+};
+
+type enumerated MuxType { h221 (0), h223 (1), h226 (2), v76 (3),
+  nx64k (4), extMxT };
+
+/// *****************************************************
+/// ***** ObservedEventsDescriptor
+/// *****************************************************
+type record ObservedEventsDescriptor {
+  RequestID requestId,
+  ObservedEventList observedEventLst
+};
+
+type record of ObservedEvent ObservedEventList;
+
+type record ObservedEvent {
+  TimeAndEvent timeAndEvent,
+  EventParOrStreamList eventParList optional
+};
+
+type record TimeAndEvent {
+  TimeNotation time  optional,
+  PkgdName event
+};
+
+type set of EventParOrStream EventParOrStreamList;
+
+type union EventParOrStream
+{
+  StreamID streamID,
+  EventParameter eventPar
+};
+
+/// *****************************************************
+/// ***** PackagesDescriptor
+/// *****************************************************
+type record of PackagesItem PackagesDescriptor;
+
+type record PackagesItem {
+  Name packageName,
+  integer packageVersion 
+};
+
+/// *****************************************************
+/// ***** ServiceChangeDescriptor
+/// *****************************************************
+type set ServiceChangeDescriptor {
+  ServiceChangeMethod serviceChangeMethod,
+  ServiceChangeAddress serviceChangeAddress  optional,
+  integer serviceChangeVersion (0..99)   optional,
+  ServiceChangeProfile serviceChangeProfile  optional,
+  Value serviceChangeReason,
+  charstring serviceChangeDelay  length(1..10)   optional,
+  MId serviceChangeMgcId  optional,
+  TimeNotation timeStamp  optional,
+  H248_token serviceChangeIncomplete optional,
+  Extension nonStandardData  optional,
+  AuditItem serviceChangeInfo  optional 
+};
+
+type enumerated ServiceChangeMethod { failover (0), forced (1), graceful (2),
+  restart (3), disconnected (4), handOff (5),
+  unknown (6)
+};
+
+type union ServiceChangeAddress {
+  integer portNumber (0..65535), //TCP/UDP port number
+  IP4Address ip4Address,
+  IP6Address ip6Address,
+  DomainName domainName,
+  PathName deviceName,
+  octetstring mtpAddress  length(2..4) 
+};
+
+type record ServiceChangeProfile {
+  Name       profileName,
+  integer    version
+};
+
+type record Extension {
+  charstring nonStandardIdentifier,
+  ParmValue data
+};
+
+type charstring ExtensionParameter;
+
+/// *****************************************************
+/// ***** SignalsDescriptor
+/// *****************************************************
+type record SignalsDescriptor
+{
+  SignalRequestList signalRequest optional
+};
+
+type record of SignalRequest SignalRequestList;
+
+type union SignalRequest {
+  SeqSigList seqSigList,
+  Signal signal
+};
+
+type record SeqSigList {
+  integer id (0..65535),
+  SignalList signalList
+};
+
+type record of Signal SignalList;
+
+type record Signal {
+  PkgdName signalName,
+  SignalParams signalParams optional
+};
+
+type set SignalParams {
+  StreamID streamID  optional,
+  SignalType sigType  optional,
+  integer duration (0..65535)   optional,
+  NotifyCompletion notifyCompletion  optional,
+  SigParameterList sigParList optional,
+  H248_token keepActive  optional,
+  SigDirection sigDirection optional,
+  RequestID sigRequestId optional
+};
+
+type enumerated SignalType { brief (0), onOff (1), timeOut (2) };
+
+type set NotifyCompletion
+{
+  H248_token onTimeOut optional,
+  H248_token onInterruptByEvent optional,
+  H248_token onInterruptByNewSignalDescr optional,
+  H248_token otherReason optional,
+  H248_token onIteration optional
+};
+
+type record of SigParameter SigParameterList;
+
+type record SigParameter {
+  Name sigParameterName,
+  ParmValue valueField
+};
+
+type enumerated SigDirection { External (0), Internal (1), Both (2) };
+
+/// *****************************************************
+/// ***** StatisticsDescriptor
+/// *****************************************************
+type record of StatisticsParameter StatisticsDescriptor;
+
+type record StatisticsParameter {
+  PkgdName statName,
+  ValueList values  optional 
+};
+
+/// *****************************************************
+/// ***** StreamDescriptor
+/// *****************************************************
+type record StreamDescriptor {
+  StreamID streamID,
+  StreamParm streamParms
+};
+
+type set StreamParm {
+  LocalControlDescriptor localControlDescriptor  optional,
+  LocalRemoteDescriptor localDescriptor  optional,
+  LocalRemoteDescriptor remoteDescriptor  optional,
+  StatisticsDescriptor statisticsDescriptor optional
+};
+
+/// *****************************************************
+/// ***** TerminationStateDescriptor
+/// *****************************************************
+type set TerminationStateDescriptor {
+  PropertyParmList propertyParms optional,
+  EventBufferControl eventBufferControl  optional,
+  ServiceState serviceState  optional 
+};
+
+type enumerated EventBufferControl {
+  off (0),
+  lockStep (1)
+};
+
+type enumerated ServiceState {
+  test (0),
+  outOfSvc (1),
+  inSvc (2)
+};
+
+type enumerated H248_token { present_ };
+
+} // end module

@@ -1,0 +1,48 @@
+/******************************************************************************
+* Copyright (c) 2005, 2015  Ericsson AB
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Eclipse Public License v1.0
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v10.html
+*
+* Contributors:
+* Csaba Koppany
+* Eduard Czimbalmos
+* Gabor Szalai
+* Janos Zoltan Szabo
+* Timea Moder
+******************************************************************************/
+//
+//  File:               TPKT_Types.ttcn
+//  Description:        Definition of the TPKT message
+//  Rev:                R6A
+//  Reference:          RFC1006 TPKT packet
+//
+
+module TPKT_Types
+{
+  external function enc_TPKT_PDU(in PDU_TPKT H225CC_pdu) 
+	  return octetstring;
+  external function dec_TPKT_PDU(in octetstring tcp_pdu)
+	  return PDU_TPKT;
+
+  type integer TPKT_INT1 (0..255) with { variant "FIELDLENGTH(8)" };
+  type octetstring TPKT_OCT1 length(1) with { variant "FIELDLENGTH(1)" };
+  type integer TPKT_LIN2_BO_LAST (0..65535) with { variant "FIELDLENGTH(16), 
+                                                            COMP(nosign),
+                                                            BYTEORDER(last)" };
+
+  type record PDU_TPKT {
+    TPKT_OCT1 version,  // should be 3
+    TPKT_INT1 reserved, // should be 0
+    TPKT_LIN2_BO_LAST pduLength,
+    octetstring data
+  }
+  with 
+  { 
+    variant (pduLength) "LENGTHTO(data,pduLength,reserved,version)"
+  };
+
+
+
+} with { encode "RAW"} // end of module

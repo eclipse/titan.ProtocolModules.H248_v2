@@ -1,0 +1,59 @@
+/******************************************************************************
+* Copyright (c) 2005, 2015  Ericsson AB
+* All rights reserved. This program and the accompanying materials
+* are made available under the terms of the Eclipse Public License v1.0
+* which accompanies this distribution, and is available at
+* http://www.eclipse.org/legal/epl-v10.html
+*
+* Contributors:
+* Csaba Koppany
+* Eduard Czimbalmos
+* Gabor Szalai
+* Janos Zoltan Szabo
+* Timea Moder
+******************************************************************************/
+//
+//  File:               H248_Mapping.ttcn
+//  Rev:                R6A
+//  Prodnr:             CNL 113 424
+module H248_Mapping
+{
+  import from H248_Types all;
+  import from TCPasp_Types all;
+  import from TCPasp_PortType all;
+  import from TPKT_Types all;
+  
+  type port H248msg_PT message{
+    inout PDU_H248
+  } with {extension "internal"}
+  
+  type component H248_Mapping_CT{
+    port H248msg_PT H248_PCO;
+    port TCPasp_PT TCP_PCO;
+  }
+  
+  function f_H248_Mapping() runs on H248_Mapping_CT{
+    var ASP_TCP vl_TCP_msg;
+    var PDU_H248 vl_H248_msg;
+    var PDU_TPKT v_tpkt_pdu;
+    
+    alt{
+      [] TCP_PCO.receive(?) -> value vl_TCP_msg {
+          v_tpkt_pdu   := dec_TPKT_PDU(vl_TCP_msg.data);
+          vl_H248_msg:=f_H248_Dec(oct2char(v_tpkt_pdu.data));
+          H248_PCO.send(vl_H248_msg);
+          repeat;
+        }
+      [] H248_PCO.receive(?) -> value vl_H248_msg {
+          v_tpkt_pdu.version := '03'O;
+          v_tpkt_pdu.reserved := 0;
+          v_tpkt_pdu.data := char2oct(f_H248_Enc(vl_H248_msg));
+          v_tpkt_pdu.pduLength := 0;
+          vl_TCP_msg.data:=enc_TPKT_PDU(v_tpkt_pdu);
+          vl_TCP_msg.client_id:=omit;
+          TCP_PCO.send(vl_TCP_msg)
+          repeat;
+        }
+    }
+  }
+}
