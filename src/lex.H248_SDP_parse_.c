@@ -13188,7 +13188,7 @@ char *H248_SDP_parse_text;
 ///////////////////////////////////////////////////////////////////////////////
 //
 //  File:               H248_SDP_parser.l
-//  Rev:                R6A
+//  Rev:                R6B
 //  Prodnr:             CNL 113 424
 //  Updated:            2012-03-03
 //  Contact:            http://ttcn.ericsson.se

@@ -31241,7 +31241,7 @@ char *H248_yytext;
 ///////////////////////////////////////////////////////////////////////////////
 //
 //  File:               H248_la.l
-//  Rev:                R6A
+//  Rev:                R6B
 //  Prodnr:             CNL 113 424
 //  Updated:            2007-01-24
 //  Contact:            http://ttcn.ericsson.se

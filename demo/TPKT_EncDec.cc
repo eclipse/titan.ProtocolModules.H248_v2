@@ -15,7 +15,7 @@
 //
 //  File:               TPKT_EncDec.cc
 //  Description:        TPKT Encoder/Decoder external functions
-//  Rev:                R6A
+//  Rev:                R6B
 //
 
 #include "TPKT_Types.hh"

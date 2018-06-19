@@ -14,7 +14,7 @@
 ******************************************************************************/
 //
 //  File:               H248_SDP_parse_parser.h
-//  Rev:                R6A
+//  Rev:                R6B
 //  Prodnr:             CNL 113 424
 //  Reference:          ITU-T SDP
 #ifndef H248_SDP_parse_parser_H

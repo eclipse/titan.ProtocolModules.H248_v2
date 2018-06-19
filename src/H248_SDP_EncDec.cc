@@ -14,7 +14,7 @@
 ******************************************************************************/
 //
 //  File:               H248_SDP_EncDec.cc
-//  Rev:                R6A
+//  Rev:                R6B
 //  Prodnr:             CNL 113 424
 //  Reference:          ITU-T H.248.1 V2 (05/2002), 
 #include "H248_SDP_Types.hh"
