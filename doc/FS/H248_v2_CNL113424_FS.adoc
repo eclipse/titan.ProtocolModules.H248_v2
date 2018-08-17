@@ -1,0 +1,133 @@
+---
+Author: Gábor Szalai
+Version: 155 17-CNL 113 424, Rev. E
+Date: 2014-07-07
+
+---
+= H.248 V2 Protocol Modules for TTCN-3 Toolset with TITAN, Function Specification
+:author: Gábor Szalai
+:revnumber: 155 17-CNL 113 424, Rev. E
+:revdate: 2014-07-07
+:toc:
+
+== How to Read This Document
+
+This is the Function Specification for the set of H.248 V2 protocol modules. H.248 V2 protocol modules are developed for the TTCN-3 Toolset with TITAN.
+
+== Scope
+
+The purpose of this document is to specify the content of the H.248 V2 protocol modules.
+
+= General
+
+Protocol modules implement the message structures of the related protocol in a formalized way, using the standard specification language TTCN-3. This allows defining of test data (templates) in the TTCN-3 language <<_3, ‎[3]>> and correctly encoding/decoding messages when executing test suites using the Titan TTCN-3 test environment.
+
+Protocol module is using Titan’s TEXT encoding attributes ‎<<_4, [4]>> for SDP encoder and hence is usable with the Titan test toolset only.
+
+= Functional Specification
+
+== Protocol Version Implemented
+
+This set of protocol modules implements protocol messages of the H.248 V2 <<_1, ‎[1]>> with its corrigendum 1 <<_2, ‎[2]>> and V3 draft protocol ‎<<_6, [6]>>.
+
+The protocol module uses Flex/Bison parser to decode messages for better performance. The encoder is configurable to put long, short or random length tokens into the encoded message.
+
+The Local and Remote descriptor described in the H.248 protocol can be further decoded and encoded as SDP messages. This is not done automatically. A H.248 specific SDP protocol module is shipped with this module, which is based on the SDP protocol specification (see ‎<<_5, [5]>>), but it includes deviations described in <<_1, ‎[1]>>, section 7.1.8 and in current document section ‎<<protocol-modifications-deviations, Protocol Modifications/Deviations>>
+
+[[modifications-deviations-related-to-the-protocol-specification]]
+== Modifications/Deviations Related to the Protocol Specification
+
+=== Unimplemented Messages, Information Elements and Constants
+
+None.
+
+[[protocol-modifications-deviations]]
+=== Protocol Modifications/Deviations
+
+==== TermIDList
+
+The `TermIDList` is introduced in H248.1 v3. In this implementation `TermID` used instead of `TermIDList`.
+
+[[sdp-specific-deviations-described-in-1-section-7-1-8]]
+==== SDP specific deviations described in <<_1, ‎[1]>>, section 7.1.8:
+
+* the "s=", "t=" and "o=" lines are optional
+
+* the use of `_CHOOSE_` value ('$' character) is allowed in place of a single parameter value
+
+* a single session description MUST NOT include more than one media description ("m=" line)
+
+==== Implementation Specific Deviations:
+
+* Every SDP attribute value is defined as 'charstring' type, even if it would contain integer number, in order to allow to contain the value `_'$'_` (`_CHOOSE_`)
+
+* The `H248_SDP_contact` type is not encoded/decoded as it is implemented in the standard SDP protocol module. The email address/phone number field is *NOT* split from the displayable name. Please do not use the `disp_name` field of the type.
+
+* The SDP parsing functionality is implemented in separate module `H248_SDP_Types`.
+
+[[encoding-decoding-and-other-related-functions]]
+== Encoding/Decoding and Other Related Functions
+
+This product also contains encoding/decoding functions that assure correct encoding of messages when sent from Titan and correct decoding of messages when received by Titan. Implemented encoding/decoding functions:
+
+[cols=3*,options=header]
+|===
+
+|Name
+|Type of formal parameters
+|Type of return value
+
+|`f_H248_Enc`
+|(in PDU_H248 pl_pdu)
+|charstring
+
+|`f_H248_Dec`
+|(in charstring pl_stream)
+|PDU_H248;
+
+|`f_H248_SDP_Enc`
+|(in H248_SDP_Message_list pl_msg)
+|charstring;
+
+|`f_H248_SDP_Dec`
+|(in charstring pl_stream)
+|H248_SDP_Message_list;
+
+|`f_H248_SDP_Dec_backtrack`
+|(in charstring pl_stream, out H248_SDP_Message_list pl_message)
+|integer;
+|===
+
+= Terminology
+
+No specific terminology is used.
+
+= Abbreviations
+
+TTCN-3:: Testing and Test Control Notation version 3
+
+= References
+
+[[_1]]
+[1] H.248.1 (05/2002) +
+Gateway control protocol: Version 2
+
+[[_2]]
+[2] H.248.1 v2 Corrigendum 1 (03/2004) +
+Gateway control protocol: Version 2 Corrigendum 1
+
+[[_3]]
+[3] ETSI ES 201 873-1 v.2.2.1 (02/2003) +
+The Testing and Test Control Notation version 3. Part 1: Core Language
+
+[[_4]]
+[4] 1/198 17-CRL 113 200/4 +
+User Documentation for the TITAN TTCN-3 Test Executor
+
+[[_5]]
+[5] https://tools.ietf.org/html/rfc2327[RFC 2327] +
+SDP: Session Description Protocol
+
+[[_6]]
+[6] H.248.1 (08/2005) +
+Gateway control protocol: Version 3 Draft
