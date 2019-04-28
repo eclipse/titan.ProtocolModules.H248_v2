@@ -31231,7 +31231,7 @@ char *H248_yytext;
 
 ///////////////////////////////////////////////////////////////////////////////
 //                                                                           //
-// Copyright Test Competence Center (TCC) ETH 2005                           //
+// Copyright (c) 2000-2019 Ericsson Telecom AB                           //
 //                                                                           //
 // The copyright to the computer  program(s) herein  is the property of TCC. //
 // The program(s) may be used and/or copied only with the written permission //

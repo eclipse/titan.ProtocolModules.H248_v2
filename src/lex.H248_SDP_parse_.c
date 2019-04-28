@@ -13178,7 +13178,7 @@ char *H248_SDP_parse_text;
 #line 2 "H248_SDP_parser.l"
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Copyright (c) 2000-2018 Ericsson Telecom AB
+// Copyright (c) 2000-2019 Ericsson Telecom AB
 //
 // All rights reserved. This program and the accompanying materials
 // are made available under the terms of the Eclipse Public License v2.0
